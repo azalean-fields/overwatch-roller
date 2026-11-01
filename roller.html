@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gamba</title>
+  <style>
+    :root {
+      --tier-1: #8847ff; /* base tier */
+      --tier-2: #6d494a; /* characters we hate */
+      --tier-3: #616300; /* characters we dont like */
+      --tier-4: #fc0ab7; /* characters we like */
+      --tier-5: #eb4b4b; /* jetpack cat tier */
+      --tier-6: #21d375; /* zenyatta tier */
+      --tier-7: #f7e307; /* venture tier */
+      --tier-8: #f3f713; /* orisa tier */
+      --tier-9: #00ffff; /* symmetra tier */
+      --tier-10: #bf1773; /* juno tier */
+      --tier-11: #8847ff; /* reinhardt tier */
+      --card-width: 120px;
+      --card-gap: 10px;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #121318;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    } 
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* === spinner === */
+    .spinner-wrapper {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      background: #1a1c23;
+      border: 2px solid #2a2d37;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* center line */
+    .spinner-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 45%;
+      width: 4px;
+      background: #f404c4;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .reel-track {
+      display: flex;
+      gap: var(--card-gap);
+      position: absolute;
+      top: 15px;
+      left: 0;
+      will-change: transform;
+    }
+
+    /* individual cards */
+    .card {
+      width: var(--card-width);
+      height: 130px;
+      background: #252833;
+      border-bottom: 4px solid #666;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .card img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      padding: 0 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    /* === add new tiers here === */
+    .card[data-tier="1"] { border-color: var(--tier-1); }
+    .card[data-tier="2"] { border-color: var(--tier-2); }
+    .card[data-tier="3"] { border-color: var(--tier-3); }
+    .card[data-tier="4"] { border-color: var(--tier-4); }
+    .card[data-tier="5"] { border-color: var(--tier-5); }
+    .card[data-tier="6"] { border-color: var(--tier-6); }
+    .card[data-tier="7"] { border-color: var(--tier-7); }
+    .card[data-tier="8"] { border-color: var(--tier-8); }
+    .card[data-tier="9"] { border-color: var(--tier-9); }
+    .card[data-tier="10"] { border-color: var(--tier-10); }
+    .card[data-tier="11"] { border-color: var(--tier-11); }
+
+    @keyframes pulse-tier-1 { 0%, 100% { box-shadow: 0 0 10px var(--tier-1); } 50% { box-shadow: 0 0 25px var(--tier-1); } }
+    @keyframes pulse-tier-2 { 0%, 100% { box-shadow: 0 0 15px var(--tier-2); } 50% { box-shadow: 0 0 35px var(--tier-2); } }
+    @keyframes pulse-tier-3 { 0%, 100% { box-shadow: 0 0 15px var(--tier-3); } 50% { box-shadow: 0 0 35px var(--tier-3); } }
+    @keyframes pulse-tier-4 { 0%, 100% { box-shadow: 0 0 20px var(--tier-4); transform: scale(1.02); } 50% { box-shadow: 0 0 45px var(--tier-4); transform: scale(1.05); } }
+    @keyframes pulse-tier-5 { 0%, 100% { box-shadow: 0 0 25px var(--tier-5); transform: scale(1.05) rotate(-1deg); } 50% { box-shadow: 0 0 60px var(--tier-5); transform: scale(1.1) rotate(1deg); } }
+    @keyframes pulse-tier-6 { 0%, 100% { box-shadow: 0 0 10px var(--tier-6); } 50% { box-shadow: 0 0 25px var(--tier-6); } }
+    @keyframes pulse-tier-7 { 0%, 100% { box-shadow: 0 0 10px var(--tier-7); } 50% { box-shadow: 0 0 25px var(--tier-7); } }
+    @keyframes pulse-tier-8 { 0%, 100% { box-shadow: 0 0 10px var(--tier-8); } 50% { box-shadow: 0 0 25px var(--tier-8); } }
+    @keyframes pulse-tier-9 { 0%, 100% { box-shadow: 0 0 10px var(--tier-9); } 50% { box-shadow: 0 0 25px var(--tier-9); } }
+    @keyframes pulse-tier-10 { 0%, 100% { box-shadow: 0 0 10px var(--tier-10); } 50% { box-shadow: 0 0 25px var(--tier-10); } }
+    @keyframes pulse-tier-11 { 0%, 100% { box-shadow: 0 0 10px var(--tier-11); } 50% { box-shadow: 0 0 25px var(--tier-11); } }
+
+
+    .win-tier-1 { animation: pulse-tier-1 0.8s ease-in-out 2; }
+    .win-tier-2 { animation: pulse-tier-2 0.8s ease-in-out 2; }
+    .win-tier-3 { animation: pulse-tier-3 0.8s ease-in-out 2; }
+    .win-tier-4 { animation: pulse-tier-4 0.6s ease-in-out 3; }
+    .win-tier-5 { animation: pulse-tier-5 0.4s ease-in-out 4; }
+    .win-tier-6 { animation: pulse-tier-6 0.8s ease-in-out 2; }
+    .win-tier-7 { animation: pulse-tier-7 0.8s ease-in-out 2; }
+    .win-tier-8 { animation: pulse-tier-8 0.8s ease-in-out 2; }
+    .win-tier-9 { animation: pulse-tier-9 0.8s ease-in-out 2; }
+    .win-tier-10 { animation: pulse-tier-10 0.8s ease-in-out 2; }
+    .win-tier-11 { animation: pulse-tier-11 0.8s ease-in-out 2; }
+
+    .result-banner {
+      min-height: 40px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    /* === table === */
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    select, button {
+      background: #2a2d37;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover { background: #3a3f4d; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1a1c23;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #2a2d37;
+    }
+
+    th { background: #222530; }
+
+    .cell-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cell-card img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .player-name {
+	width: 50%;
+	background: #222530;
+	color: #fff;
+	border: 1px solid #2a2d37;
+	padding: 5px;
+    }
+
+    #fl { float: left; }
+    #fr { float: right; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="spinner-wrapper" id="spinner-viewport">
+    <div class="reel-track" id="reel-track"></div>
+  </div>
+
+  <div class="result-banner" id="result-banner">choose your dipshit</div>
+
+  <div class="controls">
+    <label for="player-select">Players:</label>
+    <select id="player-select" onchange="updatePlayerCount(this.value)">
+      <option value="1">solo</option>
+      <option value="2">duo</option>
+      <option value="3">trio</option>
+      <option value="4" selected>czterech pancernych</option>
+      <option value="5">czterech pancernych i cwel</option>
+      <option value="6">six stack</option>
+    </select>
+    <button id="roll-all-btn" onclick="rollAll()">roll all</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>player</th>
+        <th>tank</th>
+        <th>damage</th>
+        <th>support</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <footer>
+    <small id="fl">created by kenzie webmedia, maintained by azalea heartfelt</small>
+    <small id="fr">made with ❤️sleep deprivation💚</small>
+    <br>
+    <br>
+    <small><small>ver 1.2.3</small></small>
+  </footer>
+</div>
+
+<script>
+  const HERO_POOL = {
+    tank: [
+      { text: "d.mon", image: "img/d_mon.webp", tier: 1},
+      { text: "d.va", image: "img/d_va.webp", tier: 1 },
+      { text: "mommy", image: "img/domina.webp", tier: 1 },
+      { text: "doomfist", image: "img/doomfist.webp", tier: 3 },
+      { text: "hazard", image: "img/hazard.webp", tier: 1 },
+      { text: "junker queen", image: "img/junker_queen.webp", tier: 4 },
+      { text: "mauga", image: "img/mauga.webp", tier: 1 },
+      { text: "king von", image: "img/orisa.webp", tier: 8 },
+      { text: "ramattra", image: "img/ramattra.webp", tier: 4 },
+      { text: "reinhardt", image: "img/reinhardt.webp", tier: 11 },
+      { text: "roadhog", image: "img/roadhog.webp", tier: 1 },
+      { text: "sigma", image: "img/sigma.webp", tier: 1 },
+      { text: "winton", image: "img/winston.webp", tier: 3 },
+      { text: "hammond", image: "img/wrecking_ball.webp", tier: 2 },
+      { text: "zarya", image: "img/zarya.webp", tier: 1 }
+    ],
+    damage: [
+      { text: "anran", image: "img/anran.webp", tier: 1 },
+      { text: "ashe", image: "img/ashe.webp", tier: 4 },
+      { text: "bastion", image: "img/bastion.webp", tier: 1 },
+      { text: "cassidy", image: "img/cassidy.webp", tier: 1 },
+      { text: "echo <small>echo <small>echo <small>echo</small>", image: "img/echo.webp", tier: 4 },
+      { text: "emre", image: "img/emre.webp", tier: 4 },
+      { text: "freja", image: "img/freja.webp", tier: 4 },
+      { text: "genguch", image: "img/genji.webp", tier: 4 },
+      { text: "hanzo", image: "img/hanzo.webp", tier: 1 },
+      { text: "junkrat", image: "img/junkrat.webp", tier: 1 },
+      { text: "cwel", image: "img/mei.webp", tier: 2 },
+      { text: "pharah", image: "img/pharah.webp", tier: 2 },
+      { text: "reaper", image: "img/reaper.webp", tier: 1 },
+      { text: "shion", image: "img/shion.webp", tier: 1 },
+      { text: "sierra", image: "img/sierra.webp", tier: 2 },
+      { text: "sojourn", image: "img/sojourn.webp", tier: 1 },
+      { text: "soldier: 67", image: "img/soldier_76.webp", tier: 1 },
+      { text: "symmetra", image: "img/symmetra.webp", tier: 9 },
+      { text: "torbjorn", image: "img/torbjorn.webp", tier: 1 },
+      { text: "mega cwel", image: "img/tracer.webp", tier: 2 },
+      { text: "vendetta", image: "img/vendetta.webp", tier: 1 },
+      { text: "venture", image: "img/venture.webp", tier: 7 },
+      { text: "widowmaker", image: "img/widowmaker.webp", tier: 3 }
+    ],
+    support: [
+      { text: "ana", image: "img/ana.webp", tier: 4 },
+      { text: "baptiste", image: "img/baptiste.webp", tier: 3 },
+      { text: "brigitte", image: "img/brigitte.webp", tier: 1 },
+      { text: "doctrine", image: "img/doctrine.webp", tier: 4 },
+      { text: "illari", image: "img/illari.webp", tier: 1 },
+      { text: "fika", image: "img/jetpack_cat.webp", tier: 5 },
+      { text: "glorbit", image: "img/juno.webp", tier: 10 },
+      { text: "kiriko", image: "img/kiriko.webp", tier: 1 },
+      { text: "wifeleaver", image: "img/lifeweaver.webp", tier: 1 },
+      { text: "lucio", image: "img/lucio.webp", tier: 3 },
+      { text: "mercy", image: "img/mercy.webp", tier: 3 },
+      { text: "mizuki", image: "img/mizuki.webp", tier: 4 },
+      { text: "moira", image: "img/moira.webp", tier: 3 },
+      { text: "sombra", image: "img/sombra.webp", tier: 1 },
+      { text: "wuyang", image: "img/wuyang.webp", tier: 4 },
+      { text: "zenyatta", image: "img/zenyatta.webp", tier: 6 }
+    ]
+  };
+
+  // === add new sounds here ===
+  const SOUND_EFFECTS = {
+    click: "",
+    tier1: "",
+    tier2: "snd/fart.ogg",
+    tier3: "snd/boo_womp.ogg",
+    tier4: "snd/wow.ogg",
+    tier5: "snd/meow_meow_meow.ogg",
+    tier6: "snd/experience_my_balls.ogg",
+    tier7: "snd/isolation.ogg",
+    tier8: "snd/king_von.ogg",
+    tier9: "snd/enemy_shield_generator_destroyed.ogg",
+    tier10: "snd/witajcie_na_glorbicie.ogg",
+    tier11: "snd/hammer_down.ogg"
+  };
+
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
+
+  function playTickSound() {
+    if (SOUND_EFFECTS.click) {
+      new Audio(SOUND_EFFECTS.click).play().catch(() => {});
+      return;
+    }
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.03);
+  }
+
+  function playtierSound(tier) {
+    const customKey = `tier${tier}`;
+    if (SOUND_EFFECTS[customKey]) {
+      new Audio(SOUND_EFFECTS[customKey]).play().catch(() => {});
+      return;
+    }
+    if (!audioCtx) return;
+    
+    const freqs = {
+      1: [523, 659, 783],
+      2: [440, 554],
+      3: [587, 739, 880, 1174],
+      4: [523, 659, 783, 1046, 1318],
+      5: [523, 659, 783, 1046, 1318],
+      6: [523, 659, 783],
+      7: [523, 659, 783],
+      8: [523, 659, 783],
+      9: [523, 659, 783],
+      10: [523, 659, 783],
+      11: [523, 659, 783],
+    }[tier] || [440];
+
+    freqs.forEach((f, index) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = tier === 4 ? 'sawtooth' : 'sine';
+      osc.frequency.setValueAtTime(f, audioCtx.currentTime + index * 0.08);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + index * 0.08 + 0.4);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + index * 0.08);
+      osc.stop(audioCtx.currentTime + index * 0.08 + 0.4);
+    });
+  }
+
+  const reelTrack = document.getElementById('reel-track');
+  const resultBanner = document.getElementById('result-banner');
+  const spinnerViewport = document.getElementById('spinner-viewport');
+  let isRolling = false;
+
+  function createCardElement(hero) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.setAttribute('data-tier', hero.tier);
+    card.innerHTML = `
+      <img src="${hero.image}" alt="${hero.text}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'><rect width=\'40\' height=\'40\' fill=\'%23555\'/></svg>'">
+      <div class="card-title">${hero.text}</div>
+    `;
+    return card;
+  }
+
+  function spin(pool, onComplete) {
+    if (isRolling) return;
+    initAudio();
+    isRolling = true;
+    setButtonsDisabled(true);
+
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+
+    const WINNER_INDEX = 40;
+    const totalCards = 100;
+    reelTrack.innerHTML = '';
+    
+    const generatedList = [];
+    for (let i = 0; i < totalCards; i++) {
+      if (i === WINNER_INDEX) {
+        generatedList.push(winner);
+      } else {
+        generatedList.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    }
+
+    generatedList.forEach(hero => {
+      reelTrack.appendChild(createCardElement(hero));
+    });
+
+    reelTrack.style.transition = 'none';
+    reelTrack.style.transform = 'translateX(0px)';
+
+    const cardWidth = 120;
+    const cardGap = 10;
+    const itemPitch = cardWidth + cardGap;
+    const viewportWidth = spinnerViewport.offsetWidth;
+    
+    const randomJitter = Math.floor(Math.random() * (cardWidth - 20)) + 10;
+    const targetOffset = (WINNER_INDEX * itemPitch) - (viewportWidth / 2) + (cardWidth / 2) + randomJitter;
+
+    const durationSec = 8;
+    requestAnimationFrame(() => {
+      reelTrack.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.8, 0.15, 1)`;
+      reelTrack.style.transform = `translateX(-${targetOffset}px)`;
+    });
+
+    let lastTickIndex = -1;
+    const startTime = performance.now();
+
+    function trackTicks(now) {
+      const elapsed = (now - startTime) / 1000;
+      const matrix = new WebKitCSSMatrix(window.getComputedStyle(reelTrack).transform);
+      const currentX = Math.abs(matrix.m41);
+      
+      const currentTickIndex = Math.floor((currentX + (viewportWidth / 2)) / itemPitch);
+      if (currentTickIndex !== lastTickIndex && currentTickIndex >= 0) {
+        playTickSound();
+        lastTickIndex = currentTickIndex;
+      }
+
+      if (elapsed < durationSec) {
+        requestAnimationFrame(trackTicks);
+      }
+    }
+    requestAnimationFrame(trackTicks);
+
+    setTimeout(() => {
+      isRolling = false;
+      setButtonsDisabled(false);
+
+      const winnerCard = reelTrack.children[WINNER_INDEX];
+      winnerCard.classList.add(`win-tier-${winner.tier}`);
+      
+      playtierSound(winner.tier);
+      resultBanner.innerHTML = `Rolled: <span style="color:var(--tier-${winner.tier})">${winner.text}</span>`;
+
+      if (onComplete) onComplete(winner);
+    }, durationSec * 1000 + 100);
+  }
+
+  let playerCount = 4;
+  let playerNames = ["dipshit 1", "dipshit 2", "dipshit 3", "dipshit 4", "dipshit 5", "dipshit 6"];
+  let playerState = [];
+
+  function initPlayerState() {
+    playerState = Array.from({ length: playerCount }, () => ({
+      tank: null,
+      damage: null,
+      support: null
+    }));
+    renderTable();
+  }
+
+  function updatePlayerCount(val) {
+    playerCount = parseInt(val, 10);
+    initPlayerState();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    playerState.forEach((player, pIdx) => {
+      const tr = document.createElement('tr');
+      
+      let html = `<td><input type="text" class="player-name" value="${playerNames[pIdx]}" oninput="playerNames[${pIdx}] = this.value"></input></td>`;
+      ['tank', 'damage', 'support'].forEach(role => {
+        const item = player[role];
+        if (item) {
+          html += `
+            <td>
+              <div class="cell-card">
+                <span class="badge" style="background:var(--tier-${item.tier})"></span>
+                <img src="${item.image}" alt="">
+                <span>${item.text}</span>
+                <button onclick="rollCell(${pIdx}, '${role}')" title="reroll ${role}">reroll</button>
+              </div>
+            </td>
+          `;
+        } else {
+          html += `
+            <td>
+              <button onclick="rollCell(${pIdx}, '${role}')">roll ${role}</button>
+            </td>
+          `;
+        }
+      });
+
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function rollCell(pIdx, role) {
+    spin(HERO_POOL[role], (winner) => {
+      playerState[pIdx][role] = winner;
+      renderTable();
+    });
+  }
+
+  function rollAll() {
+    let tasks = [];
+    for (let p = 0; p < playerCount; p++) {
+      ['tank', 'damage', 'support'].forEach(role => {
+        tasks.push({ pIdx: p, role });
+      });
+    }
+
+    function step(index) {
+      if (index >= tasks.length) return;
+      const { pIdx, role } = tasks[index];
+      rollCell(pIdx, role);
+      setTimeout(() => {
+        const checkInterval = setInterval(() => {
+          if (!isRolling) {
+            clearInterval(checkInterval);
+            step(index + 1);
+          }
+        }, 100);
+      }, 4200);
+    }
+
+    step(0);
+  }
+
+  function setButtonsDisabled(disabled) {
+    document.querySelectorAll('button, select').forEach(el => el.disabled = disabled);
+  }
+
+  initPlayerState();
+</script>
+</body>
+</html>
