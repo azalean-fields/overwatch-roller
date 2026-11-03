@@ -1,6 +1,10 @@
+### 1.3 (02/11/26)
+- added four new tiers
+- wont be updating this file anymore, as im gonna start putting version numbers in the html and commit msgs
+
 ### 1.2.5 (01/11/26)
 - renamed tracer from "cwel" to "mega cwel" because im a biased ana main who hates playing against her
-- put the roller on github. won't be updating this file anymore, keeping it for history's sake
+- put the roller on github
 
 ### 1.2.4 (20/10/26)
 - renamed "bonus dipshit" to "dipshit 6"
