@@ -13,4 +13,4 @@ Each character has a tier assigned to it. Every tier has its own color and a sou
 
 *All of the above should be commentated in the file with "add new [x] here"*
 
-Originally created by kenziewebm (https://github.com/kenziewebm), maintained by Azalea Heartfelt
+Originally created by [kenziewebm](https://github.com/kenziewebm), maintained by Azalea Heartfelt
