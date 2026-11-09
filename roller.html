@@ -22,6 +22,7 @@
       --tier-13: #24ff07; /* mauga tier */
       --tier-14: #005EB8; /* hazard tier */
       --tier-15: #424242; /* winton tier */
+      --tier-16: #0044d8; /* pharah tier */
       --card-width: 120px;
       --card-gap: 10px;
     }
@@ -124,6 +125,7 @@
     .card[data-tier="13"] { border-color: var(--tier-13); }
     .card[data-tier="14"] { border-color: var(--tier-14); }
     .card[data-tier="15"] { border-color: var(--tier-15); }
+    .card[data-tier="16"] { border-color: var(--tier-16); }
 
     @keyframes pulse-tier-1 { 0%, 100% { box-shadow: 0 0 10px var(--tier-1); } 50% { box-shadow: 0 0 25px var(--tier-1); } }
     @keyframes pulse-tier-2 { 0%, 100% { box-shadow: 0 0 15px var(--tier-2); } 50% { box-shadow: 0 0 35px var(--tier-2); } }
@@ -140,6 +142,7 @@
     @keyframes pulse-tier-13 { 0%, 100% { box-shadow: 0 0 10px var(--tier-13); } 50% { box-shadow: 0 0 25px var(--tier-13); } }
     @keyframes pulse-tier-14 { 0%, 100% { box-shadow: 0 0 10px var(--tier-14); } 50% { box-shadow: 0 0 25px var(--tier-14); } }
     @keyframes pulse-tier-15 { 0%, 100% { box-shadow: 0 0 10px var(--tier-15); } 50% { box-shadow: 0 0 25px var(--tier-15); } }
+    @keyframes pulse-tier-16 { 0%, 100% { box-shadow: 0 0 10px var(--tier-16); transform: scale(1.1) rotate(-2deg); } 50% { box-shadow: 0 0 70px var(--tier-16); transform: scale(1.1) rotate(2deg); } }
 
     .win-tier-1 { animation: pulse-tier-1 0.8s ease-in-out 2; }
     .win-tier-2 { animation: pulse-tier-2 0.8s ease-in-out 2; }
@@ -156,6 +159,7 @@
     .win-tier-13 { animation: pulse-tier-13 0.8s ease-in-out 2; }
     .win-tier-14 { animation: pulse-tier-14 0.8s ease-in-out 2; }
     .win-tier-15 { animation: pulse-tier-15 0.8s ease-in-out 2; }
+    .win-tier-16 { animation: pulse-tier-16 1.2s ease-in-out 2; }
 
     .result-banner {
       min-height: 40px;
@@ -252,7 +256,7 @@
     <button id="roll-all-btn" onclick="rollAll()">roll all</button>
   </div>
 
-  <table>
+  <table id="players-table">
     <thead>
       <tr>
         <th>player</th>
@@ -267,7 +271,7 @@
   <footer>
     <small id="fl">created by kenzie webmedia, maintained by azalea heartfelt</small>
     <br>
-    <small><small id="fl">v1.3.3 (2026/11/05)</small></small>
+    <small><small id="fl">v1.3.4 (2026/11/09)</small></small>
     <small id="fr">made with ❤️sleep deprivation💚</small>
   </footer>
 </div>
@@ -303,7 +307,7 @@
       { text: "hanzo", image: "img/hanzo.webp", tier: 1 },
       { text: "junkrat", image: "img/junkrat.webp", tier: 1 },
       { text: "cwel", image: "img/mei.webp", tier: 2 },
-      { text: "pharah", image: "img/pharah.webp", tier: 2 },
+      { text: "netanyahu", image: "img/pharah.webp", tier: 16 }
       { text: "reaper", image: "img/reaper.webp", tier: 1 },
       { text: "shion", image: "img/shion.webp", tier: 4 },
       { text: "sierra", image: "img/sierra.webp", tier: 2 },
@@ -353,7 +357,8 @@
     tier12: 'snd/hey_gamers.ogg',
     tier13: 'snd/masz_bana.ogg',
     tier14: 'snd/scotland_forever.ogg',
-    tier15: 'snd/winton.ogg'
+    tier15: 'snd/winton.ogg',
+    tier16: 'snd/idf.ogg'
   };
 
   let audioCtx = null;
@@ -407,6 +412,7 @@
       13: [523, 659, 783],
       14: [523, 659, 783],
       15: [523, 659, 783],
+      16: [523, 659, 728]
     }[tier] || [440];
 
     freqs.forEach((f, index) => {
@@ -508,11 +514,46 @@
       const winnerCard = reelTrack.children[WINNER_INDEX];
       winnerCard.classList.add(`win-tier-${winner.tier}`);
       
+      console.log("a")
       playtierSound(winner.tier);
+      console.log("b")
       resultBanner.innerHTML = `Rolled: <span style="color:var(--tier-${winner.tier})">${winner.text}</span>`;
 
-      if (onComplete) onComplete(winner);
+      if (winner.tier == 16) {
+        const overlay = document.createElement("div");
+        Object.assign(overlay.style, {
+          position: "fixed",
+          inset: "0",
+          backgroundImage: 'url("img/bibi.gif")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: "0",
+          transition: "opacity 1000ms ease",
+          pointerEvents: "none",
+          zIndex: "-1"
+        });
+
+        document.body.appendChild(overlay);
+
+        // two requestAnimations since one is for the fade-in and one is for the gif
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            overlay.style.opacity = "1";
+            document.querySelector("#players-table").style.opacity = "0.4";
+          });
+        });
+
+        setTimeout(() => {
+          document.body.style.backgroundColor = "#121318";
+          overlay.style.opacity = 0;
+          document.querySelector("#players-table").style.opacity = "1.0";
+
+          setTimeout(() => overlay.remove(), 2600);
+        }, 2600)
+      }
     }, durationSec * 1000 + 100);
+
+    if (onComplete) onComplete(winner);
   }
 
   let playerCount = 4;
