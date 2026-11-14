@@ -510,14 +510,13 @@
     setTimeout(() => {
       isRolling = false;
       setButtonsDisabled(false);
-
+      
       const winnerCard = reelTrack.children[WINNER_INDEX];
       winnerCard.classList.add(`win-tier-${winner.tier}`);
       
-      console.log("a")
       playtierSound(winner.tier);
-      console.log("b")
       resultBanner.innerHTML = `Rolled: <span style="color:var(--tier-${winner.tier})">${winner.text}</span>`;
+      if (onComplete) onComplete(winner);
 
       if (winner.tier == 16) {
         const overlay = document.createElement("div");
@@ -553,7 +552,6 @@
       }
     }, durationSec * 1000 + 100);
 
-    if (onComplete) onComplete(winner);
   }
 
   let playerCount = 4;
